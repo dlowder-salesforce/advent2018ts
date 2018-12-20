@@ -257,7 +257,7 @@ const advent06 = {
     let total: number = 0;
     for (i = -100; i < 500; i++) {
       for (j = -100; j < 500; j++) {
-        let p: Point = new Point();
+        const p: Point = new Point();
         p.x = i;
         p.y = j;
         if (distToAllVertices(p, vertices) < 10000) {
