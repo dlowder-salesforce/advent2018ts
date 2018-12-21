@@ -61,13 +61,13 @@ import fs from 'fs';
 
 class Vertex {
   public value: string;
-  public previous: Vertex[];
-  public next: Vertex[];
+  public previous: Set<string>;
+  public next: Set<string>;
 
   constructor(value: string) {
     this.value = value;
-    this.previous = [];
-    this.next = [];
+    this.previous = new Set();
+    this.next = new Set();
   }
 }
 
@@ -106,19 +106,50 @@ const buildGraph = (input: string[][]): Map<string, Vertex> => {
     map.set(v, new Vertex(v));
   }
   for (const pair of input) {
-    const first: Vertex = map.get(pair[0]);
-    const second: Vertex = map.get(pair[1]);
-    first.next.push(second);
-    second.previous.push(first);
+    const first: string = pair[0];
+    const second: string = pair[1];
+    map.get(first).next.add(second);
+    map.get(second).previous.add(first);
   }
   return map;
 };
 
+const findFirstSteps = (graph: Map<string, Vertex>): string[] => {
+  const result: string[] = [];
+  for (const k of graph.keys()) {
+    if (graph.get(k).previous.size === 0) {
+      result.push(k);
+    }
+  }
+  result.sort();
+  return result;
+};
+
+const removeStep = (graph: Map<string, Vertex>, step: string) => {
+  for (const k of graph.keys()) {
+    if (graph.get(k).next.has(step)) {
+      graph.get(k).next.delete(step);
+    }
+    if (graph.get(k).previous.has(step)) {
+      graph.get(k).previous.delete(step);
+    }
+  }
+  graph.delete(step);
+};
+
 const advent07 = {
-  part1: (): number => {
-    const input: string[][] = provideTestInput();
+  part1: (): string => {
+    const input: string[][] = provideInput();
     const graph: Map<string, Vertex> = buildGraph(input);
-    return 0;
+    let readySteps: string[] = findFirstSteps(graph);
+    let result: string = '';
+    while (readySteps.length > 0) {
+      const nextStep: string = readySteps.shift();
+      removeStep(graph, nextStep);
+      result = result.concat(nextStep);
+      readySteps = findFirstSteps(graph);
+    }
+    return result;
   },
 
   part2: (): number => {
