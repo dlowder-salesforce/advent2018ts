@@ -189,7 +189,7 @@ const numberOfWorkers: number = 5; // = 2 for test input
 
 const stepTime = (step: string): number => {
   return step.charCodeAt(0) - 4; // A = 61, B = 62, etc.
-  // For test input, change 4 to 64 so that A = 1, B = 2, etc.
+  // For test input, change 4 to 64 so that A = 1, B = 2,
 };
 
 const advent07 = {
