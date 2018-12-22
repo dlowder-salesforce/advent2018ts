@@ -55,6 +55,54 @@ Finally, E is completed.
 So, in this example, the correct order is CABDFE.
 
 In what order should the steps in your instructions be completed?
+
+--- Part Two ---
+As you're about to begin construction, four of the Elves offer to help. "The
+sun will set soon; it'll go faster if we work together." Now, you need to
+account for multiple people working on steps simultaneously. If multiple steps
+are available, workers should still begin them in alphabetical order.
+
+Each step takes 60 seconds plus an amount corresponding to its letter: A=1,
+B=2, C=3, and so on. So, step A takes 60+1=61 seconds, while step Z takes
+60+26=86 seconds. No time is required between steps.
+
+To simplify things for the example, however, suppose you only have help from
+one Elf (a total of two workers) and that each step takes 60 fewer seconds (so
+that step A takes 1 second and step Z takes 26 seconds). Then, using the same
+instructions as above, this is how each second would be spent:
+
+Second   Worker 1   Worker 2   Done
+   0        C          .
+   1        C          .
+   2        C          .
+   3        A          F       C
+   4        B          F       CA
+   5        B          F       CA
+   6        D          F       CAB
+   7        D          F       CAB
+   8        D          F       CAB
+   9        D          .       CABF
+  10        E          .       CABFD
+  11        E          .       CABFD
+  12        E          .       CABFD
+  13        E          .       CABFD
+  14        E          .       CABFD
+  15        .          .       CABFDE
+
+Each row represents one second of time. The Second column identifies how many
+seconds have passed as of the beginning of that second. Each worker column
+shows the step that worker is currently doing (or . if they are idle). The Done
+column shows completed steps.
+
+Note that the order of the steps has changed; this is because steps now take
+time to finish and multiple workers can begin multiple steps simultaneously.
+
+In this example, it would take 15 seconds for two workers to complete these steps.
+
+With 5 workers and the 60+ second step durations described above, how long will
+it take to complete all of the steps?
+
+Your puzzle answer was 946.
  */
 
 import fs from 'fs';
@@ -137,6 +185,13 @@ const removeStep = (graph: Map<string, Vertex>, step: string) => {
   graph.delete(step);
 };
 
+const numberOfWorkers: number = 5; // = 2 for test input
+
+const stepTime = (step: string): number => {
+  return step.charCodeAt(0) - 4; // A = 61, B = 62, etc.
+  // For test input, change 4 to 64 so that A = 1, B = 2, etc.
+};
+
 const advent07 = {
   part1: (): string => {
     const input: string[][] = provideInput();
@@ -153,7 +208,46 @@ const advent07 = {
   },
 
   part2: (): number => {
-    return 0;
+    const input: string[][] = provideInput();
+    const graph: Map<string, Vertex> = buildGraph(input);
+    let readySteps: string[] = findFirstSteps(graph);
+    const processingSteps: Map<string, number> = new Map();
+    for (const step of readySteps) {
+      if (processingSteps.size < numberOfWorkers) {
+        processingSteps.set(step, stepTime(step));
+      }
+    }
+    let totalTime: number = 0;
+    while (graph.size > 0 || processingSteps.size > 0) {
+      let stepsToDelete: string[] = [];
+      for (const step of processingSteps.keys()) {
+        const time: number = processingSteps.get(step);
+        if (time === 1) {
+          stepsToDelete.push(step);
+        } else {
+          processingSteps.set(step, time - 1);
+        }
+      }
+      if (stepsToDelete.length > 0) {
+        for (const step of stepsToDelete) {
+          processingSteps.delete(step);
+          removeStep(graph, step);
+        }
+        stepsToDelete = [];
+        readySteps = findFirstSteps(graph);
+        for (const step of readySteps) {
+          if (
+            !processingSteps.has(step) &&
+            processingSteps.size < numberOfWorkers
+          ) {
+            processingSteps.set(step, stepTime(step));
+          }
+        }
+      }
+      totalTime++;
+    }
+
+    return totalTime;
   }
 };
 
