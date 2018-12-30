@@ -158,6 +158,18 @@ After 3 seconds, the message appeared briefly: HI. Of course, your message will
 be much longer and will take many more seconds to appear.
 
 What message will eventually appear in the sky?
+
+Your puzzle answer was PLBPGFRR.
+
+--- Part Two ---
+Good thing you didn't have to wait, because that would have taken a long
+time - much longer than the 3 seconds in the example above.
+
+Impressed by your sub-hour communication capabilities, the Elves are curious:
+exactly how many seconds would they have needed to wait for that message
+to appear?
+
+Your puzzle answer was 10519.
  */
 
 import fs from 'fs';
@@ -169,9 +181,16 @@ interface Particle {
   vy: number;
 }
 
-const provideInput = (): Particle[] => {
+interface State {
+  iteration: number;
+  area: number;
+  grid: string;
+  particles: Particle[];
+}
+
+const provideInput = (): State => {
   const regex: RegExp = /position=<(.*),(.*)> velocity=<(.*),(.*)>/;
-  return fs
+  const particles: Particle[] = fs
     .readFileSync('input/input10.txt', 'utf8')
     .trim()
     .split('\n')
@@ -186,16 +205,105 @@ const provideInput = (): Particle[] => {
       }
       return p;
     });
+  return {
+    area: area(particles),
+    grid: '',
+    iteration: 0,
+    particles
+  };
+};
+
+const limits = (particles: Particle[]): number[] => {
+  const xmin: number =
+    particles
+      .map(p => p.x)
+      .reduce((a, b) => (a < b ? a : b), Number.MAX_SAFE_INTEGER) - 2;
+  const xmax: number =
+    particles
+      .map(p => p.x)
+      .reduce((a, b) => (a > b ? a : b), -Number.MAX_SAFE_INTEGER) + 2;
+  const ymin: number =
+    particles
+      .map(p => p.y)
+      .reduce((a, b) => (a < b ? a : b), Number.MAX_SAFE_INTEGER) - 2;
+  const ymax: number =
+    particles
+      .map(p => p.y)
+      .reduce((a, b) => (a > b ? a : b), -Number.MAX_SAFE_INTEGER) + 2;
+  return [xmin, ymin, xmax, ymax];
+};
+
+const area = (particles: Particle[]): number => {
+  const [xmin, ymin, xmax, ymax]: number[] = limits(particles);
+  return (xmax - xmin) * (ymax - ymin);
+};
+
+const iterate = (state: State) => {
+  for (const p of state.particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+  }
+  state.area = area(state.particles);
+  state.grid = gridToString(state);
+  state.iteration = state.iteration + 1;
+};
+
+const gridToString = (state: State): string => {
+  let result = '';
+  if (state.area < 250000) {
+    const [xmin, ymin, xmax, ymax]: number[] = limits(state.particles);
+    const grid: string[] = [];
+    let i: number;
+    let j: number;
+    for (j = 0; j < ymax - ymin; j++) {
+      for (i = 0; i < xmax - xmin; i++) {
+        grid.push('.');
+      }
+    }
+    for (const p of state.particles) {
+      const x: number = p.x - xmin;
+      const y: number = p.y - ymin;
+      grid[y * (xmax - xmin) + x] = '*';
+    }
+    for (j = 0; j <= ymax - ymin; j++) {
+      result =
+        result +
+        grid.slice(j * (xmax - xmin), (j + 1) * (xmax - xmin)).join('') +
+        '\n';
+    }
+  }
+  return result;
+};
+
+const solve = (): State => {
+  const state: State = provideInput();
+  let i: number;
+  let minArea: number = Number.MAX_SAFE_INTEGER;
+  let targetIteration: number = 0;
+  let targetGrid: string = '';
+  for (i = 0; i < 20000; i++) {
+    iterate(state);
+    if (state.area < minArea) {
+      targetIteration = state.iteration;
+      targetGrid = state.grid;
+      minArea = state.area;
+    }
+  }
+  return {
+    area: minArea,
+    grid: targetGrid,
+    iteration: targetIteration,
+    particles: []
+  };
 };
 
 const advent10 = {
-  part1: (): number => {
-    const input: Particle[] = provideInput();
-    return 0;
+  part1: (): string => {
+    return solve().grid;
   },
 
   part2: (): number => {
-    return 0;
+    return solve().iteration;
   }
 };
 
