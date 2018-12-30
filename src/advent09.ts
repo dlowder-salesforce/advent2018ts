@@ -82,6 +82,7 @@ What would the new winning Elf's score be if the number of the last marble
 were 100 times larger?
  */
 
+import { Deque } from '@blakeembrey/deque';
 import fs from 'fs';
 
 const provideInput = (): string => {
@@ -89,49 +90,34 @@ const provideInput = (): string => {
 };
 
 class CircularList {
-  private circle: number[];
+  private circle: Deque<number>;
 
   constructor() {
-    this.circle = [];
+    this.circle = new Deque();
   }
 
   public currentValue(): number {
-    return this.circle.length > 0 ? this.circle[0] : null;
+    return this.circle.peek(0);
   }
 
   public insertAfterCurrent(value: number) {
-    if (this.circle.length === 0) {
+    if (value === 0) {
       this.circle.push(value);
     } else {
-      const current: number = this.circle.shift();
-      this.circle.unshift(value);
-      this.circle.unshift(current);
+      const current: number = this.circle.popLeft();
+      this.circle.pushLeft(value);
+      this.circle.pushLeft(current);
     }
   }
 
   public moveCurrent(places: number) {
-    let i: number;
-    if (places > 0) {
-      for (i = 0; i < places; i++) {
-        const current: number = this.circle.shift();
-        this.circle.push(current);
-      }
-    } else {
-      for (i = 0; i > places; i--) {
-        const last: number = this.circle.pop();
-        this.circle.unshift(last);
-      }
-    }
+    this.circle.rotate(-places);
   }
 
   public removeAfterCurrent() {
-    const current: number = this.circle.shift();
-    this.circle.shift();
-    this.circle.unshift(current);
-  }
-
-  public toString(): string {
-    return this.circle.toString();
+    const current: number = this.circle.popLeft();
+    this.circle.popLeft();
+    this.circle.pushLeft(current);
   }
 }
 
@@ -174,7 +160,11 @@ const advent09 = {
   },
 
   part2: (): number => {
-    return 0;
+    const input: string = provideInput();
+    const tokens: string[] = input.split(' ');
+    const nPlayers = parseInt(tokens[0], 10);
+    const lastMarbleScore = parseInt(tokens[6], 10);
+    return playGame(nPlayers, lastMarbleScore * 100);
   }
 };
 
