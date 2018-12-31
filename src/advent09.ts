@@ -101,7 +101,7 @@ class CircularList {
   }
 
   public insertAfterCurrent(value: number) {
-    if (value === 0) {
+    if (this.circle.size === 0) {
       this.circle.push(value);
     } else {
       const current: number = this.circle.popLeft();
