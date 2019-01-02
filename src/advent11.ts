@@ -90,6 +90,38 @@ const cellPower = (serial: number, x: number, y: number): number => {
   return hundredsDigit(powerLevel) - 5;
 };
 
+const key = (x: number, y: number, size: number): string => {
+  return '' + x + ',' + y + ',' + size;
+};
+
+const squarePower = (
+  map: Map<string, number>,
+  serial: number,
+  x: number,
+  y: number,
+  size: number
+): number => {
+  const k: string = key(x, y, size);
+  if (map.has(k)) {
+    return map.get(k);
+  }
+  let result: number;
+  let i: number;
+  if (size > 1) {
+    result = squarePower(map, serial, x, y, size - 1);
+    for (i = 0; i < size; i++) {
+      result += cellPower(serial, x + size - 1, y + i);
+    }
+    for (i = 0; i < size - 1; i++) {
+      result += cellPower(serial, x + i, y + size - 1);
+    }
+  } else {
+    result = cellPower(serial, x, y);
+  }
+  map.set(k, result);
+  return result;
+};
+
 const advent11 = {
   part1: (): string => {
     const serial: number = provideInput();
@@ -99,18 +131,10 @@ const advent11 = {
     let maxPower: number = -Number.MAX_SAFE_INTEGER;
     let x: number;
     let y: number;
+    const map: Map<string, number> = new Map();
     for (x = 1; x <= gridSize - 2; x++) {
       for (y = 1; y <= gridSize - 2; y++) {
-        const power: number =
-          cellPower(serial, x, y) +
-          cellPower(serial, x + 1, y) +
-          cellPower(serial, x + 2, y) +
-          cellPower(serial, x, y + 1) +
-          cellPower(serial, x + 1, y + 1) +
-          cellPower(serial, x + 2, y + 1) +
-          cellPower(serial, x, y + 2) +
-          cellPower(serial, x + 1, y + 2) +
-          cellPower(serial, x + 2, y + 2);
+        const power: number = squarePower(map, serial, x, y, 3);
         if (power > maxPower) {
           bestX = x;
           bestY = y;
@@ -121,8 +145,31 @@ const advent11 = {
     return '' + bestX + ',' + bestY;
   },
 
-  part2: (): number => {
-    return 0;
+  part2: (): string => {
+    const serial: number = provideInput();
+    const gridSize = 300;
+    let bestX: number = -1;
+    let bestY: number = -1;
+    let bestSize: number = -1;
+    let maxPower: number = -Number.MAX_SAFE_INTEGER;
+    let x: number;
+    let y: number;
+    let size: number;
+    const map: Map<string, number> = new Map();
+    for (size = 1; size <= gridSize; size++) {
+      for (x = 1; x <= gridSize - size + 1; x++) {
+        for (y = 1; y <= gridSize - size + 1; y++) {
+          const power: number = squarePower(map, serial, x, y, size);
+          if (power > maxPower) {
+            bestX = x;
+            bestY = y;
+            bestSize = size;
+            maxPower = power;
+          }
+        }
+      }
+    }
+    return '' + bestX + ',' + bestY + ',' + bestSize;
   }
 };
 
