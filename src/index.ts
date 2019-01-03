@@ -9,7 +9,8 @@ import advent08 from './advent08';
 import advent09 from './advent09';
 import advent10 from './advent10';
 import advent11 from './advent11';
-
+import advent12 from './advent12';
+/*
 console.log('Day 01:');
 console.log(advent01.part1());
 console.log(advent01.part2());
@@ -53,3 +54,7 @@ console.log(advent10.part2());
 console.log('Day 11:');
 console.log(advent11.part1());
 console.log(advent11.part2());
+ */
+console.log('Day 12:');
+console.log(advent12.part1());
+console.log(advent12.part2());
