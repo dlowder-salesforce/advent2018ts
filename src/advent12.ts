@@ -232,6 +232,14 @@ const parseRules = (ruleLines: string[]): Map<number, boolean> => {
   return rules;
 };
 
+const stateSum = (state: Set<number>): number => {
+  let sum: number = 0;
+  for (const n of state) {
+    sum += n;
+  }
+  return sum;
+};
+
 const advent12 = {
   part1: (): number => {
     const input: string[] = provideInput();
@@ -245,15 +253,31 @@ const advent12 = {
       state = iterateState(state, rules);
       // console.log('' + i + ': ' + stateString(state, min, max));
     }
-    let sum: number = 0;
-    for (const n of state) {
-      sum += n;
-    }
-    return sum;
+    return stateSum(state);
   },
 
   part2: (): number => {
-    return 0;
+    const input: string[] = provideInput();
+    let state: Set<number> = parseInitialState(input[0]);
+    const rules: Map<number, boolean> = parseRules(input.slice(2));
+    let i: number = 0;
+    const stateMap: Map<string, number> = new Map();
+    const stateSet: Set<string> = new Set();
+    let min: number = stateMinimum(state) - 5;
+    let max: number = stateMaximum(state) + 5;
+    let s = stateString(state, min, max);
+    while (!stateSet.has(s)) {
+      stateSet.add(s);
+      stateMap.set(s, i);
+      state = iterateState(state, rules);
+      min = stateMinimum(state) - 5;
+      max = stateMaximum(state) + 5;
+      s = stateString(state, min, max);
+      i += 1;
+    }
+    // After this point, the pattern of pots repeats but moves up one space,
+    // so the sum just increases by the number of pots each iteration
+    return stateSum(state) + (50000000000 - i) * state.size;
   }
 };
 
