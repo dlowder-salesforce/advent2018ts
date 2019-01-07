@@ -191,6 +191,98 @@ In this example, the location of the first crash is 7,3.
 
 import fs from 'fs';
 
+const provideInput = (): string[] => {
+  return fs
+    .readFileSync('input/input13.txt', 'utf8')
+    .trim()
+    .split('\n');
+};
+
+const provideTestInput = (): string[] => {
+  return [
+    '/->-\\',
+    '|   |  /----\\',
+    '| /-+--+-  |',
+    '| | |  | v  |',
+    '-+-/  -+--/',
+    '------/'
+  ];
+};
+
+enum Orientation {
+  VERTICAL,
+  HORIZONTAL,
+  INTERSECTION,
+  LEFT_CURVE,
+  RIGHT_CURVE
+}
+
+enum Direction {
+  UP,
+  DOWN,
+  RIGHT,
+  LEFT
+}
+
+interface Cart {
+  x: number;
+  y: number;
+  direction: Direction;
+}
+
+interface MapNode {
+  x: number;
+  y: number;
+  orientation: Orientation;
+}
+
+const keyFromLoc = (x: number, y: number): string => {
+  return '' + x + '.' + y;
+};
+
+const generateMap = (input: string[]): Map<string, Partial<MapNode>> => {
+  const result: Map<string, Partial<MapNode>> = new Map();
+  let y: number = 0;
+  let x: number = 0;
+  // First pass: get locations
+  for (const s of input) {
+    for (x === 0; x < s.length; x++) {
+      if (s.charAt(x) !== ' ') {
+        result.set(keyFromLoc(x, y), { x, y });
+      }
+    }
+    y++;
+  }
+  // Second pass: look for track
+  y = 0;
+  for (const s of input) {
+    for (x === 0; x < s.length; x++) {
+      const c: string = s.charAt(x);
+      const m: Partial<MapNode> = result.get(keyFromLoc(x, y));
+      switch (c) {
+        case '-':
+          m.orientation = Orientation.HORIZONTAL;
+          break;
+        case '|':
+          m.orientation = Orientation.VERTICAL;
+          break;
+        case '/':
+          m.orientation = Orientation.LEFT_CURVE;
+          break;
+        case '\\':
+          m.orientation = Orientation.RIGHT_CURVE;
+          break;
+        case '+':
+          m.orientation = Orientation.INTERSECTION;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+  return result;
+};
+
 const advent13 = {
   part1: (): number => {
     return 0;
