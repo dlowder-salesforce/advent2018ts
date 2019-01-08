@@ -240,7 +240,40 @@ const keyFromLoc = (x: number, y: number): string => {
   return '' + x + '.' + y;
 };
 
-const generateMap = (input: string[]): Map<string, Partial<MapNode>> => {
+const generateCarts = (input: string[]): Set<Cart> => {
+  const result: Set<Cart> = new Set();
+  let y: number = 0;
+  let x: number = 0;
+  for (const s of input) {
+    for (x === 0; x < s.length; x++) {
+      const c: string = s.charAt(x);
+      switch (c) {
+        case '^':
+          result.add({ x, y, direction: Direction.UP });
+          break;
+        case 'V':
+        case 'v':
+          result.add({ x, y, direction: Direction.DOWN });
+          break;
+        case '>':
+          result.add({ x, y, direction: Direction.RIGHT });
+          break;
+        case '<':
+          result.add({ x, y, direction: Direction.LEFT });
+          break;
+        default:
+          break;
+      }
+    }
+    y++;
+  }
+  return result;
+};
+
+const generateMap = (
+  input: string[],
+  carts: Set<Cart>
+): Map<string, Partial<MapNode>> => {
   const result: Map<string, Partial<MapNode>> = new Map();
   let y: number = 0;
   let x: number = 0;
@@ -278,6 +311,28 @@ const generateMap = (input: string[]): Map<string, Partial<MapNode>> => {
         default:
           break;
       }
+    }
+    y++;
+  }
+  // Go through carts and make sure track underneath is defined
+  for (const c of carts) {
+    switch (c.direction) {
+      case Direction.UP:
+      case Direction.DOWN:
+        result.set(keyFromLoc(c.x, c.y), {
+          orientation: Orientation.VERTICAL,
+          x,
+          y
+        });
+        break;
+      case Direction.LEFT:
+      case Direction.RIGHT:
+        result.set(keyFromLoc(c.x, c.y), {
+          orientation: Orientation.HORIZONTAL,
+          x,
+          y
+        });
+        break;
     }
   }
   return result;
